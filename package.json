@@ -1,0 +1,59 @@
+{
+  "name": "jsonld-cli",
+  "version": "0.1.0-dev",
+  "description": "A JSON-LD command line interface tool.",
+  "homepage": "http://github.com/digitalbazaar/jsonld-cli",
+  "author": {
+    "name": "Digital Bazaar, Inc.",
+    "email": "support@digitalbazaar.com",
+    "url": "http://digitalbazaar.com/"
+  },
+  "contributors": [
+    {
+      "name": "Dave Longley",
+      "email": "dlongley@digitalbazaar.com"
+    },
+    {
+      "name": "David I. Lehn",
+      "email": "dlehn@digitalbazaar.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/digitalbazaar/jsonld-cli"
+  },
+  "bugs": {
+    "url": "https://github.com/digitalbazaar/jsonld-cli/issues",
+    "email": "support@digitalbazaar.com"
+  },
+  "license": "BSD-3-Clause",
+  "bin": {
+    "jsonld": "./bin/jsonld"
+  },
+  "dependencies": {
+    "async": "^1.4.0",
+    "commander": "^2.8.0",
+    "jsonld": "^0.4.0",
+    "jsonld-request": "^0.1.0"
+  },
+  "devDependencies": {
+    "jscs": "^2.1.1",
+    "jshint": "^2.8.0"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "keywords": [
+    "JSON",
+    "JSON-LD",
+    "Linked Data",
+    "RDF",
+    "RDFa",
+    "Semantic Web",
+    "jsonld"
+  ],
+  "scripts": {
+    "jscs": "jscs bin/jsonld",
+    "jshint": "jshint bin/jsonld"
+  }
+}
