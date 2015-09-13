@@ -21,10 +21,6 @@ and [jsonld-request][]. Inputs can be from stdin, URLs, or files.
 npm install -g jsonld-cli
 ```
 
-```
-jsonld --help
-```
-
 ## Usage
 
 The `jsonld` command line tool can be used to:
@@ -33,22 +29,22 @@ The `jsonld` command line tool can be used to:
  * Transform RDFa to JSON-LD
  * Normalize JSON-LD/RDFa Datasets to NQuads
 
-To get tool options, a list of commands, or command options:
+To show tool options, a list of commands, or command options:
 
-    ./bin/jsonld --help
-    ./bin/jsonld COMMAND --help
+    jsonld --help
+    jsonld COMMAND --help
 
 To compact a document on the Web using a JSON-LD context published on
 the Web:
 
-    ./bin/jsonld compact -c "https://w3id.org/payswarm/v1" "http://recipes.payswarm.com/?p=10554"
+    jsonld compact -c "https://w3id.org/payswarm/v1" "http://recipes.payswarm.com/?p=10554"
 
 The command above will read in a PaySwarm Asset and Listing in RDFa 1.0 format,
 convert it to JSON-LD expanded form, compact it using the
 'https://w3id.org/payswarm/v1' context, and dump it out to the console in
 compacted form.
 
-    ./bin/jsonld normalize -q "http://recipes.payswarm.com/?p=10554"
+    jsonld normalize -q "http://recipes.payswarm.com/?p=10554"
 
 The command above will read in a PaySwarm Asset and Listing in RDFa 1.0 format,
 normalize the data using the RDF Dataset normalization algorithm, and
