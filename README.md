@@ -71,6 +71,7 @@ http://github.com/digitalbazaar/jsonld-cli
 [JSON-LD]: http://json-ld.org/
 [RDFa]: http://www.w3.org/TR/rdfa-core/
 [json-ld.org]: https://github.com/json-ld/json-ld.org
+[jsonld-request]: https://github.com/digitalbazaar/jsonld-request
 [jsonld.js]: https://github.com/digitalbazaar/jsonld.js
 [node.js]: https://nodejs.org/
 [npm]: https://npmjs.org/
