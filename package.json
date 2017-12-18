@@ -31,7 +31,7 @@
     "jsonld": "./bin/jsonld"
   },
   "dependencies": {
-    "async": "^1.4.0",
+    "async": "^2.6.0",
     "commander": "^2.8.0",
     "jsonld": "^0.4.0",
     "jsonld-request": "^0.1.0"

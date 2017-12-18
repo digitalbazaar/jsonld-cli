@@ -169,7 +169,7 @@ _jsonLdCommand(program.command('format [filename|URL|-]'))
   .action(function(input, cmd) {
     input = input || '-';
     async.auto({
-      process: function(callback, results) {
+      process: function(callback) {
         var options = _jsonLdOptions(cmd, input);
         options.format = cmd.format || 'json';
         if(cmd.nquads) {
@@ -203,7 +203,7 @@ _jsonLdCommand(program.command('format [filename|URL|-]'))
             throw new Error('ERROR: Unknown format: ' + options.format);
         }
       },
-      output: ['process', function(callback, results) {
+      output: ['process', function(results, callback) {
         _output(results.process, cmd, callback);
       }]
     }, _final);
@@ -226,7 +226,7 @@ _jsonLdCommand(program.command('compact [filename|URL]'))
         }
         callback(null);
       },
-      process: ['check', function(callback, results) {
+      process: ['check', function(results, callback) {
         var options = _jsonLdOptions(cmd, input);
         options.strict = cmd.strict;
         options.compactArrays = cmd.compactArrays;
@@ -234,7 +234,7 @@ _jsonLdCommand(program.command('compact [filename|URL]'))
 
         jsonld.compact(input, cmd.context, options, callback);
       }],
-      output: ['process', function(callback, results) {
+      output: ['process', function(results, callback) {
         _output(results.process, cmd, callback);
       }]
     }, _final);
@@ -246,13 +246,13 @@ _jsonLdCommand(program.command('expand [filename|URL|-]'))
   .action(function(input, cmd) {
     input = input || '-';
     async.auto({
-      process: function(callback, results) {
+      process: function(callback) {
         var options = _jsonLdOptions(cmd, input);
         options.keepFreeFloatingNodes = cmd.keepFreeFloatingNodes;
 
         jsonld.expand(input, options, callback);
       },
-      output: ['process', function(callback, results) {
+      output: ['process', function(results, callback) {
         _output(results.process, cmd, callback);
       }]
     }, _final);
@@ -265,12 +265,12 @@ _jsonLdCommand(program.command('flatten [filename|URL|-]'))
   .action(function(input, cmd) {
     input = input || '-';
     async.auto({
-      process: function(callback, results) {
+      process: function(callback) {
         var options = _jsonLdOptions(cmd, input);
 
         jsonld.flatten(input, cmd.context, options, callback);
       },
-      output: ['process', function(callback, results) {
+      output: ['process', function(results, callback) {
         _output(results.process, cmd, callback);
       }]
     }, _final);
@@ -294,7 +294,7 @@ _jsonLdCommand(program.command('frame [filename|URL|-]'))
         }
         callback(null);
       },
-      process: ['check', function(callback, results) {
+      process: ['check', function(results, callback) {
         var options = _jsonLdOptions(cmd, input);
         options.embed = cmd.embed;
         options.explicit = cmd.explicit;
@@ -302,7 +302,7 @@ _jsonLdCommand(program.command('frame [filename|URL|-]'))
 
         jsonld.frame(input, cmd.frame, options, callback);
       }],
-      output: ['process', function(callback, results) {
+      output: ['process', function(results, callback) {
         _output(results.process, cmd, callback);
       }]
     }, _final);
@@ -316,7 +316,7 @@ _jsonLdCommand(program.command('normalize [filename|URL|-]'))
   .action(function(input, cmd) {
     input = input || '-';
     async.auto({
-      process: function(callback, results) {
+      process: function(callback) {
         var options = _jsonLdOptions(cmd, input);
         if(cmd.nquads) {
           options.format = 'application/nquads';
@@ -327,7 +327,7 @@ _jsonLdCommand(program.command('normalize [filename|URL|-]'))
 
         jsonld.normalize(input, options, callback);
       },
-      output: ['process', function(callback, results) {
+      output: ['process', function(results, callback) {
         _output(results.process, cmd, callback);
       }]
     }, _final);
