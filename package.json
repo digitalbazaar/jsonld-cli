@@ -32,13 +32,13 @@
   },
   "dependencies": {
     "async": "^2.6.0",
-    "commander": "^2.8.0",
-    "jsonld": "^0.4.0",
-    "jsonld-request": "^0.1.0"
+    "commander": "^2.11.0",
+    "jsonld": "^0.4.12",
+    "jsonld-request": "^0.2.0"
   },
   "devDependencies": {
-    "jscs": "^2.1.1",
-    "jshint": "^2.8.0"
+    "jscs": "^3.0.7",
+    "jshint": "^2.9.5"
   },
   "engines": {
     "node": "*"
