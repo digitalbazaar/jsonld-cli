@@ -32,8 +32,8 @@
   },
   "dependencies": {
     "async": "^2.6.0",
-    "commander": "^2.11.0",
-    "jsonld": "^0.4.12",
+    "commander": "^2.16.0",
+    "jsonld": "^1.0.2",
     "jsonld-request": "^0.2.0"
   },
   "devDependencies": {
