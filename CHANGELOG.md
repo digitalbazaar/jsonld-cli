@@ -1,5 +1,7 @@
 # jsonld-cli ChangeLog
 
+## 0.3.0 - 2018-07-06
+
 ## Changed
 - *BREAKING*: Update dependencies. Includes update to jsonld.js 1.x which fixes
   bugs but could also cause some behavior changes. Future updates will include
