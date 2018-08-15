@@ -37,8 +37,7 @@
     "jsonld-request": "^0.2.0"
   },
   "devDependencies": {
-    "jscs": "^3.0.7",
-    "jshint": "^2.9.5"
+    "eslint": "^5.3.0"
   },
   "engines": {
     "node": "*"
@@ -53,7 +52,6 @@
     "jsonld"
   ],
   "scripts": {
-    "jscs": "jscs bin/jsonld",
-    "jshint": "jshint bin/jsonld"
+    "lint": "eslint bin/jsonld"
   }
 }
