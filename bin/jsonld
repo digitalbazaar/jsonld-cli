@@ -232,7 +232,14 @@ _jsonLdCommand(program.command('compact [filename|URL]'))
         options.compactArrays = cmd.compactArrays;
         options.graph = !!cmd.graph;
 
-        jsonld.compact(input, cmd.context, options, callback);
+        if(_isHTTP(cmd.context)) {
+          jsonld.compact(input, cmd.context, options, callback);
+        } else {
+          jsonld_request(cmd.context, function(err, res, context) {
+            if(err) { throw err; }
+            jsonld.compact(input, context, options, callback);
+          });
+        }
       }],
       output: ['process', function(results, callback) {
         _output(results.process, cmd, callback);
