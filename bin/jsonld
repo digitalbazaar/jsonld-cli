@@ -161,6 +161,31 @@ program
     console.log();
   });
 
+_jsonLdCommand(program.command('import [filename|URL|-]'))
+  .description('import RDF to JSON-LD')
+  .option('-f, --format <format>', 'input format [application/n-quads]', String, 'application/n-quads')
+  .option('-r, --use-rdf-type', 'use rdf:type, else use @type [false]')
+  .option('-n, --use-native-types', 'convert XSD types into native types (boolean, integer, double) [false]')
+  .action(function(input, cmd) {
+    input = input || '-';
+    async.auto({
+      process: function(callback) {
+        var options = _jsonLdOptions(cmd, input);
+        options.format = cmd.format;
+        options.useRdfType = cmd.useRdfType;
+        options.useNativeTypes = cmd.useNativeTypes;
+
+        jsonld_request(input, { type: 'text' }, function(err, res, data) {
+          if(err) { throw err; }
+          jsonld.fromRDF(data.toString(), options, callback);
+        });
+      },
+      output: ['process', function(results, callback) {
+        _output(results.process, cmd, callback);
+      }]
+    }, _final);
+  });
+
 _jsonLdCommand(program.command('format [filename|URL|-]'))
   .description('format and convert JSON-LD')
   .option('-f, --format <format>', 'output format [json]', String)
