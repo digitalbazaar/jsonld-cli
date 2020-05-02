@@ -34,7 +34,8 @@
     "async": "^2.6.0",
     "commander": "^2.16.0",
     "jsonld": "^1.0.2",
-    "jsonld-request": "^0.2.0"
+    "jsonld-request": "^0.2.0",
+    "snyk": "^1.316.2"
   },
   "devDependencies": {
     "jscs": "^3.0.7",
@@ -54,6 +55,9 @@
   ],
   "scripts": {
     "jscs": "jscs bin/jsonld",
-    "jshint": "jshint bin/jsonld"
-  }
+    "jshint": "jshint bin/jsonld",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
+  },
+  "snyk": true
 }
