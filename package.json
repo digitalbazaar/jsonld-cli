@@ -41,7 +41,7 @@
     "eslint-config-digitalbazaar": "^2.8.0"
   },
   "engines": {
-    "node": "*"
+    "node": ">=12"
   },
   "keywords": [
     "JSON",
