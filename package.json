@@ -28,13 +28,13 @@
   },
   "license": "BSD-3-Clause",
   "bin": {
-    "jsonld": "./bin/jsonld"
+    "jsonld": "./bin/jsonld.js"
   },
+  "type": "module",
   "dependencies": {
-    "async": "^2.6.0",
-    "commander": "^2.16.0",
-    "jsonld": "^1.0.2",
-    "jsonld-request": "^0.2.0"
+    "commander": "^9.4.0",
+    "jsonld": "^8.1.0",
+    "jsonld-request": "^1.0.1"
   },
   "devDependencies": {
     "eslint": "^8.23.0",
@@ -43,7 +43,7 @@
     "eslint-plugin-unicorn": "^43.0.2"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "keywords": [
     "JSON",
