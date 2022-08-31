@@ -37,8 +37,10 @@
     "jsonld-request": "^0.2.0"
   },
   "devDependencies": {
-    "eslint": "^8.12.0",
-    "eslint-config-digitalbazaar": "^2.8.0"
+    "eslint": "^8.23.0",
+    "eslint-config-digitalbazaar": "^4.1.0",
+    "eslint-plugin-jsdoc": "^39.3.6",
+    "eslint-plugin-unicorn": "^43.0.2"
   },
   "engines": {
     "node": ">=12"
@@ -53,6 +55,6 @@
     "jsonld"
   ],
   "scripts": {
-    "lint": "eslint . ./bin/jsonld"
+    "lint": "eslint ."
   }
 }
