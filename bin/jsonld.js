@@ -5,17 +5,17 @@
  * @author David I. Lehn <dlehn@digitalbazaar.com>
  *
  * BSD 3-Clause License
- * Copyright (c) 2013 Digital Bazaar, Inc.
+ * Copyright (c) 2013-2022 Digital Bazaar, Inc.
  * All rights reserved.
  */
 
 'use strict';
 
-const async = require('async');
-const jsonld = require('jsonld')();
-const jsonld_request = require('jsonld-request');
-const path = require('path');
-const program = require('commander');
+import https from 'https';
+import jsonld from 'jsonld';
+import {request} from 'jsonld-request';
+import path from 'node:path';
+import {program} from 'commander';
 
 // Parse the string or value and return the boolean value encoded or raise an
 // exception.
@@ -44,7 +44,7 @@ function boolify(value) {
 }
 
 // common output function
-function _output(data, cmd, callback) {
+async function _output(data, cmd) {
   if(typeof data === 'object') {
     const output = JSON.stringify(data, null, cmd.indent);
     process.stdout.write(output);
@@ -56,11 +56,10 @@ function _output(data, cmd, callback) {
   if(cmd.newline) {
     process.stdout.write('\n');
   }
-  callback();
 }
 
-// final async call to handle errors
-function _final(err/*, results*/) {
+// error handler
+function _error(err) {
   if(err) {
     if(err.stack) {
       console.log(err.stack);
@@ -84,7 +83,7 @@ function _jsonLdCommand(command) {
   command
     .option('-i, --indent <spaces>', 'spaces to indent [2]', Number, 2)
     .option('-N, --no-newline', 'do not output the trailing newline [newline]')
-    .option('-k, --insecure', 'allow insecure SSL connections [false]')
+    .option('-k, --insecure', 'allow insecure connections [false]')
     .option('-t, --type <type>', 'input data type [auto]')
     .option('-b, --base <base>', 'base IRI []');
   return command;
@@ -94,7 +93,7 @@ function _jsonLdCommand(command) {
 function _requestOptions(command) {
   const options = {};
   if(command.insecure) {
-    options.strictSSL = false;
+    options.agent = new https.Agent({rejectUnauthorized: false});
   }
   if(command.type) {
     options.dataType = command.type;
@@ -122,22 +121,21 @@ function _jsonLdOptions(command, input) {
   }
 
   // setup documentLoader
-  options.documentLoader = function(url, callback) {
+  // FIXME: should be elsewhere
+  options.documentLoader = async function documentLoader(url) {
     const reqopts = _requestOptions(command);
-    jsonld_request(url, reqopts, function(err, res, data) {
-      callback(err, {
-        contextUrl: null,
-        documentUrl: url,
-        document: data || null
-      });
-    });
+    const reqresult = await request(url, reqopts);
+    return {
+      contextUrl: null,
+      documentUrl: url,
+      document: reqresult.data || null
+    };
   };
 
   return options;
 }
 
 program
-  .version(jsonld.version)
   .on('--help', function() {
     console.log();
     console.log(
@@ -166,47 +164,57 @@ _jsonLdCommand(program.command('format [filename|URL|-]'))
   .option('-f, --format <format>', 'output format [json]', String)
   .option('-q, --nquads', 'output application/nquads [false]')
   .option('-j, --json', 'output application/json [true]')
-  .action(function(input, cmd) {
+  .action(async function format(input, cmd) {
     input = input || '-';
-    async.auto({
-      process: function(callback) {
-        const options = _jsonLdOptions(cmd, input);
-        options.format = cmd.format || 'json';
-        if(cmd.nquads) {
-          options.format = 'application/nquads';
-        }
-        if(cmd.json) {
-          options.format = 'application/json';
-        }
+    const options = _jsonLdOptions(cmd, input);
+    options.format = cmd.format || 'json';
+    if(cmd.nquads) {
+      options.format = 'application/nquads';
+    }
+    if(cmd.json) {
+      options.format = 'application/json';
+    }
 
-        switch(options.format.toLowerCase()) {
-          case 'nquads':
-          case 'n-quads':
-          case 'application/nquads':
-            // normalize format for toRDF
-            options.format = 'application/nquads';
-            jsonld.toRDF(input, options, callback);
-            break;
-          case 'json':
-          case 'jsonld':
-          case 'json-ld':
-          case 'ld+json':
-          case 'application/json':
-          case 'application/ld+json':
-            // just doing basic JSON formatting
-            const reqopts = _requestOptions(cmd);
-            jsonld_request(input, reqopts, function(err, res, data) {
-              callback(err, data);
-            });
-            break;
-          default:
-            throw new Error('ERROR: Unknown format: ' + options.format);
-        }
-      },
-      output: ['process', function(results, callback) {
-        _output(results.process, cmd, callback);
-      }]
-    }, _final);
+    let result;
+    switch(options.format.toLowerCase()) {
+      case 'nquads':
+      case 'n-quads':
+      case 'application/nquads':
+        // normalize format for toRDF
+        options.format = 'application/nquads';
+        result = await jsonld.toRDF(input, options);
+        break;
+      case 'json':
+      case 'jsonld':
+      case 'json-ld':
+      case 'ld+json':
+      case 'application/json':
+      case 'application/ld+json':
+        // just doing basic JSON formatting
+        const reqopts = _requestOptions(cmd);
+        const reqresult = await request(input, reqopts);
+        result = reqresult.data;
+        break;
+      default:
+        throw new Error('ERROR: Unknown format: ' + options.format);
+    }
+
+    await _output(result, cmd);
+  });
+
+_jsonLdCommand(program.command('lint [filename|URL|-]'))
+  .description('lint JSON-LD')
+  .action(async function lint(input, cmd) {
+    input = input || '-';
+    const options = _jsonLdOptions(cmd, input);
+
+    await jsonld.expand(input, {
+      ...options,
+      eventHandler: ({event, next}) => {
+        console.log(event);
+        next();
+      }
+    });
   });
 
 _jsonLdCommand(program.command('compact [filename|URL]'))
@@ -216,64 +224,45 @@ _jsonLdCommand(program.command('compact [filename|URL]'))
   .option('-A, --no-compact-arrays',
     'disable compacting arrays to single values')
   .option('-g, --graph', 'always output top-level graph [false]')
-  .action(function(input, cmd) {
+  .action(async function compact(input, cmd) {
     input = input || '-';
-    async.auto({
-      check: function(callback) {
-        if(!cmd.context) {
-          return callback(
-            new Error('ERROR: Context not specified, use -c/--context'));
-        }
-        callback(null);
-      },
-      process: ['check', function(results, callback) {
-        const options = _jsonLdOptions(cmd, input);
-        options.strict = cmd.strict;
-        options.compactArrays = cmd.compactArrays;
-        options.graph = !!cmd.graph;
+    if(!cmd.context) {
+      throw new Error('ERROR: Context not specified, use -c/--context');
+    }
+    const options = _jsonLdOptions(cmd, input);
+    options.strict = cmd.strict;
+    options.compactArrays = cmd.compactArrays;
+    options.graph = !!cmd.graph;
 
-        jsonld.compact(input, cmd.context, options, callback);
-      }],
-      output: ['process', function(results, callback) {
-        _output(results.process, cmd, callback);
-      }]
-    }, _final);
+    const result = await jsonld.compact(input, cmd.context, options);
+
+    await _output(result, cmd);
   });
 
 _jsonLdCommand(program.command('expand [filename|URL|-]'))
   .description('expand JSON-LD')
   .option('    --keep-free-floating-nodes', 'keep free-floating nodes')
-  .action(function(input, cmd) {
+  .action(async function expand(input, cmd) {
     input = input || '-';
-    async.auto({
-      process: function(callback) {
-        const options = _jsonLdOptions(cmd, input);
-        options.keepFreeFloatingNodes = cmd.keepFreeFloatingNodes;
+    const options = _jsonLdOptions(cmd, input);
+    options.keepFreeFloatingNodes = cmd.keepFreeFloatingNodes;
 
-        jsonld.expand(input, options, callback);
-      },
-      output: ['process', function(results, callback) {
-        _output(results.process, cmd, callback);
-      }]
-    }, _final);
+    const result = await jsonld.expand(input, options);
+
+    await _output(result, cmd);
   });
 
 _jsonLdCommand(program.command('flatten [filename|URL|-]'))
   .description('flatten JSON-LD')
   .option('-c, --context <filename|URL>',
     'context filename or URL for compaction [none]')
-  .action(function(input, cmd) {
+  .action(async function flatten(input, cmd) {
     input = input || '-';
-    async.auto({
-      process: function(callback) {
-        const options = _jsonLdOptions(cmd, input);
+    const options = _jsonLdOptions(cmd, input);
 
-        jsonld.flatten(input, cmd.context, options, callback);
-      },
-      output: ['process', function(results, callback) {
-        _output(results.process, cmd, callback);
-      }]
-    }, _final);
+    const result = await jsonld.flatten(input, cmd.context, options);
+
+    await _output(result, cmd);
   });
 
 _jsonLdCommand(program.command('frame [filename|URL|-]'))
@@ -284,28 +273,19 @@ _jsonLdCommand(program.command('frame [filename|URL|-]'))
     'default @explicit flag [false]', boolify, false)
   .option('    --omit-default <omit-default>',
     'default @omitDefault flag [false]', boolify, false)
-  .action(function(input, cmd) {
+  .action(async function frame(input, cmd) {
     input = input || '-';
-    async.auto({
-      check: function(callback) {
-        if(!cmd.frame) {
-          return callback(
-            new Error('ERROR: Frame not specified, use -f/--frame'));
-        }
-        callback(null);
-      },
-      process: ['check', function(results, callback) {
-        const options = _jsonLdOptions(cmd, input);
-        options.embed = cmd.embed;
-        options.explicit = cmd.explicit;
-        options.omitDefault = cmd.omitDefault;
+    if(!cmd.frame) {
+      throw new Error('ERROR: Frame not specified, use -f/--frame');
+    }
+    const options = _jsonLdOptions(cmd, input);
+    options.embed = cmd.embed;
+    options.explicit = cmd.explicit;
+    options.omitDefault = cmd.omitDefault;
 
-        jsonld.frame(input, cmd.frame, options, callback);
-      }],
-      output: ['process', function(results, callback) {
-        _output(results.process, cmd, callback);
-      }]
-    }, _final);
+    const result = await jsonld.frame(input, cmd.frame, options);
+
+    await _output(result.process, cmd);
   });
 
 _jsonLdCommand(program.command('normalize [filename|URL|-]'))
@@ -313,24 +293,25 @@ _jsonLdCommand(program.command('normalize [filename|URL|-]'))
   .option('-f, --format <format>',
     'format to output (\'application/nquads\' for N-Quads')
   .option('-q, --nquads', 'use \'application/nquads\' format')
-  .action(function(input, cmd) {
+  .action(async function normalize(input, cmd) {
     input = input || '-';
-    async.auto({
-      process: function(callback) {
-        const options = _jsonLdOptions(cmd, input);
-        if(cmd.nquads) {
-          options.format = 'application/nquads';
-        }
-        if(cmd.format) {
-          options.format = cmd.format;
-        }
+    const options = _jsonLdOptions(cmd, input);
+    if(cmd.nquads) {
+      options.format = 'application/nquads';
+    }
+    if(cmd.format) {
+      options.format = cmd.format;
+    }
 
-        jsonld.normalize(input, options, callback);
-      },
-      output: ['process', function(results, callback) {
-        _output(results.process, cmd, callback);
-      }]
-    }, _final);
+    const result = await jsonld.normalize(input, options);
+
+    await _output(result.process, cmd);
   });
 
-program.parse(process.argv);
+(async () => {
+  try {
+    await program.parseAsync(process.argv);
+  } catch(e) {
+    _error(e);
+  }
+})();
