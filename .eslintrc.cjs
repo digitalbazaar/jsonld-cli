@@ -1,10 +1,14 @@
 module.exports = {
+  root: true,
   env: {
-    browser: true,
-    commonjs: true,
-    node: true,
-    es2020: true
+    node: true
   },
-  extends: 'eslint-config-digitalbazaar',
-  root: true
+  extends: [
+    'digitalbazaar',
+    'digitalbazaar/module',
+    'digitalbazaar/jsdoc'
+  ],
+  rules: {
+    'unicorn/prefer-node-protocol': 'error'
+  }
 };
