@@ -8,12 +8,9 @@
  * Copyright (c) 2013-2022 Digital Bazaar, Inc.
  * All rights reserved.
  */
-
-'use strict';
-
-import https from 'https';
+import https from 'node:https';
 import jsonld from 'jsonld';
-import {request} from 'jsonld-request';
+import {jsonldRequest} from 'jsonld-request';
 import path from 'node:path';
 import {program} from 'commander';
 
@@ -58,8 +55,17 @@ async function _output(data, cmd) {
   }
 }
 
+// lint warning handler
+function _warningHandler({event, next}) {
+  if(event.level === 'warning') {
+    console.log(`WARNING: ${event.message}`);
+    console.log(event);
+  }
+  next();
+}
+
 // error handler
-function _error(err) {
+function _error(err, msg = 'Error:') {
   if(err) {
     if(err.stack) {
       console.log(err.stack);
@@ -67,7 +73,13 @@ function _error(err) {
       console.log(err.toString());
     }
     if(typeof err === 'object') {
-      console.log('Error:', JSON.stringify(err, null, 2));
+      const {cause, ...options} = err;
+      if(Object.keys(options).length !== 0) {
+        console.log(msg, JSON.stringify(options, null, 2));
+      }
+      if(cause) {
+        _error(cause, 'Error Cause:');
+      }
     }
     process.exit(1);
   }
@@ -85,12 +97,32 @@ function _jsonLdCommand(command) {
     .option('-N, --no-newline', 'do not output the trailing newline [newline]')
     .option('-k, --insecure', 'allow insecure connections [false]')
     .option('-t, --type <type>', 'input data type [auto]')
-    .option('-b, --base <base>', 'base IRI []');
+    .option('-b, --base <base>', 'base IRI []')
+    .option('-l, --lint', 'show lint warnings [false]')
+    .option('-s, --safe', 'enable safe mode [false]');
   return command;
 }
 
+// determine base
+function _getBase(command, input) {
+  // explicit base set
+  if(command.base) {
+    return command.base;
+  }
+  // stdin
+  if(input === '-') {
+    return 'stdin://';
+  }
+  // use input as base if it looks like a URL
+  if(_isHTTP(input)) {
+    return input;
+  }
+  // use a file URL otherwise
+  return 'file://' + path.resolve(process.cwd(), input);
+}
+
 // init common request options
-function _requestOptions(command) {
+function _requestOptions(command, input) {
   const options = {};
   if(command.insecure) {
     options.agent = new https.Agent({rejectUnauthorized: false});
@@ -98,6 +130,7 @@ function _requestOptions(command) {
   if(command.type) {
     options.dataType = command.type;
   }
+  options.base = _getBase(command, input);
   return options;
 }
 
@@ -105,30 +138,25 @@ function _requestOptions(command) {
 function _jsonLdOptions(command, input) {
   const options = {};
 
-  // setup base
-  if(command.base) {
-    // explicit base set
-    options.base = command.base;
-  } else if(input !== '-') {
-    // only setup base if not stdin
-    // use input as base if it looks like a URL
-    // use a file URL otherwise
-    if(_isHTTP(input)) {
-      options.base = input;
-    } else {
-      options.base = 'file://' + path.resolve(process.cwd(), input);
-    }
+  if(command.lint) {
+    options.eventHandler = _warningHandler;
   }
+
+  if(command.safe) {
+    options.safe = true;
+  }
+
+  options.base = _getBase(command, input);
 
   // setup documentLoader
   // FIXME: should be elsewhere
   options.documentLoader = async function documentLoader(url) {
-    const reqopts = _requestOptions(command);
-    const reqresult = await request(url, reqopts);
+    const reqOpts = _requestOptions(command, url);
+    const reqResult = await jsonldRequest(url, reqOpts);
     return {
       contextUrl: null,
       documentUrl: url,
-      document: reqresult.data || null
+      document: reqResult.data || null
     };
   };
 
@@ -162,14 +190,14 @@ program
 _jsonLdCommand(program.command('format [filename|URL|-]'))
   .description('format and convert JSON-LD')
   .option('-f, --format <format>', 'output format [json]', String)
-  .option('-q, --nquads', 'output application/nquads [false]')
+  .option('-q, --n-quads', 'output application/n-quads [false]')
   .option('-j, --json', 'output application/json [true]')
   .action(async function format(input, cmd) {
     input = input || '-';
     const options = _jsonLdOptions(cmd, input);
     options.format = cmd.format || 'json';
-    if(cmd.nquads) {
-      options.format = 'application/nquads';
+    if(cmd.nQuads) {
+      options.format = 'application/n-quads';
     }
     if(cmd.json) {
       options.format = 'application/json';
@@ -180,8 +208,9 @@ _jsonLdCommand(program.command('format [filename|URL|-]'))
       case 'nquads':
       case 'n-quads':
       case 'application/nquads':
+      case 'application/n-quads':
         // normalize format for toRDF
-        options.format = 'application/nquads';
+        options.format = 'application/n-quads';
         result = await jsonld.toRDF(input, options);
         break;
       case 'json':
@@ -191,9 +220,9 @@ _jsonLdCommand(program.command('format [filename|URL|-]'))
       case 'application/json':
       case 'application/ld+json':
         // just doing basic JSON formatting
-        const reqopts = _requestOptions(cmd);
-        const reqresult = await request(input, reqopts);
-        result = reqresult.data;
+        const reqOpts = _requestOptions(cmd, input);
+        const reqResult = await jsonldRequest(input, reqOpts);
+        result = reqResult.data;
         break;
       default:
         throw new Error('ERROR: Unknown format: ' + options.format);
@@ -210,17 +239,13 @@ _jsonLdCommand(program.command('lint [filename|URL|-]'))
 
     await jsonld.expand(input, {
       ...options,
-      eventHandler: ({event, next}) => {
-        console.log(event);
-        next();
-      }
+      eventHandler: _warningHandler
     });
   });
 
 _jsonLdCommand(program.command('compact [filename|URL]'))
   .description('compact JSON-LD')
   .option('-c, --context <filename|URL>', 'context filename or URL')
-  .option('-S, --no-strict', 'disable strict mode')
   .option('-A, --no-compact-arrays',
     'disable compacting arrays to single values')
   .option('-g, --graph', 'always output top-level graph [false]')
@@ -230,7 +255,6 @@ _jsonLdCommand(program.command('compact [filename|URL]'))
       throw new Error('ERROR: Context not specified, use -c/--context');
     }
     const options = _jsonLdOptions(cmd, input);
-    options.strict = cmd.strict;
     options.compactArrays = cmd.compactArrays;
     options.graph = !!cmd.graph;
 
@@ -285,19 +309,47 @@ _jsonLdCommand(program.command('frame [filename|URL|-]'))
 
     const result = await jsonld.frame(input, cmd.frame, options);
 
-    await _output(result.process, cmd);
+    await _output(result, cmd);
+  });
+
+// TODO: add fromRdf support
+//_jsonLdCommand(program.command('fromRdf [filename|URL|-]'))
+// ...
+
+_jsonLdCommand(program.command('toRdf [filename|URL|-]'))
+  .description('convert JSON-LD into an RdfDataset')
+  .option('-f, --format <format>',
+    'format to output (\'application/n-quads\' for N-Quads')
+  .option('-q, --n-quads', 'use \'application/n-quads\' format')
+  .option('-g, --generalized-rdf', 'produce generalized RDF')
+  .action(async function toRdf(input, cmd) {
+    input = input || '-';
+    const options = _jsonLdOptions(cmd, input);
+    if(cmd.nQuads) {
+      options.format = 'application/n-quads';
+    }
+    if(cmd.generalizedRdf) {
+      options.produceGeneralizedRdf = true;
+    }
+    if(cmd.format) {
+      options.format = cmd.format;
+    }
+
+    const result = await jsonld.toRDF(input, options);
+
+    await _output(result, cmd);
   });
 
 _jsonLdCommand(program.command('normalize [filename|URL|-]'))
   .description('normalize JSON-LD')
   .option('-f, --format <format>',
-    'format to output (\'application/nquads\' for N-Quads')
-  .option('-q, --nquads', 'use \'application/nquads\' format')
+    'format to output (\'application/n-quads\' for N-Quads')
+  .option('-q, --n-quads', 'use \'application/n-quads\' format')
   .action(async function normalize(input, cmd) {
     input = input || '-';
     const options = _jsonLdOptions(cmd, input);
-    if(cmd.nquads) {
-      options.format = 'application/nquads';
+    if(cmd.nQuads) {
+      options.format = 'application/n-quads';
     }
     if(cmd.format) {
       options.format = cmd.format;
@@ -305,13 +357,11 @@ _jsonLdCommand(program.command('normalize [filename|URL|-]'))
 
     const result = await jsonld.normalize(input, options);
 
-    await _output(result.process, cmd);
+    await _output(result, cmd);
   });
 
-(async () => {
-  try {
-    await program.parseAsync(process.argv);
-  } catch(e) {
+program
+  .parseAsync(process.argv)
+  .catch(e => {
     _error(e);
-  }
-})();
+  });

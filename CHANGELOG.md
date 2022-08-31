@@ -1,5 +1,18 @@
 # jsonld-cli ChangeLog
 
+## 1.0.0 - 2022-xx-xx
+
+## Changed
+- **BREAKING**: Update dependencies. Likely behavior changes since last release.
+- **BREAKING**: Change `--nquads` option to `--n-quads`.
+- **BREAKING**: Requre Node.js >=14.
+
+## Added
+- Add `toRdf` command.
+- Add `lint` command. Note that this uses currently private unstable
+  [jsonld.js][] APIs.
+- Add `safe` mode to commands.
+
 ## 0.3.0 - 2018-07-06
 
 ## Changed
