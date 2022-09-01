@@ -1,6 +1,6 @@
 # jsonld-cli ChangeLog
 
-## 1.0.0 - 2022-xx-xx
+## 1.0.0 - 2022-09-01
 
 ## Changed
 - **BREAKING**: Update dependencies. Likely behavior changes since last
