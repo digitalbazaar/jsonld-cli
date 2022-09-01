@@ -82,7 +82,7 @@ Commercial support for this library is available upon request from
 Source Code
 -----------
 
-http://github.com/digitalbazaar/jsonld-cli
+https://github.com/digitalbazaar/jsonld-cli
 
 [Digital Bazaar]: https://digitalbazaar.com/
 [JSON-LD]: https://json-ld.org/
