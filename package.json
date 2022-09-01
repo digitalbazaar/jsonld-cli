@@ -2,11 +2,11 @@
   "name": "jsonld-cli",
   "version": "0.3.1-0",
   "description": "A JSON-LD command line interface tool.",
-  "homepage": "http://github.com/digitalbazaar/jsonld-cli",
+  "homepage": "https://github.com/digitalbazaar/jsonld-cli",
   "author": {
     "name": "Digital Bazaar, Inc.",
     "email": "support@digitalbazaar.com",
-    "url": "http://digitalbazaar.com/"
+    "url": "https://digitalbazaar.com/"
   },
   "contributors": [
     {
@@ -20,7 +20,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "http://github.com/digitalbazaar/jsonld-cli"
+    "url": "https://github.com/digitalbazaar/jsonld-cli"
   },
   "bugs": {
     "url": "https://github.com/digitalbazaar/jsonld-cli/issues",
