@@ -34,7 +34,7 @@
   "dependencies": {
     "commander": "^9.4.0",
     "jsonld": "^8.1.0",
-    "jsonld-request": "^1.0.1"
+    "jsonld-request": "^2.0.0"
   },
   "devDependencies": {
     "eslint": "^8.23.0",
