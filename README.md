@@ -1,8 +1,6 @@
 jsonld-cli
 ==========
 
-[![Dependency Status](https://img.shields.io/david/digitalbazaar/jsonld-cli.svg)](https://david-dm.org/digitalbazaar/jsonld-cli)
-
 Introduction
 ------------
 
