@@ -9,10 +9,16 @@
  * All rights reserved.
  */
 import https from 'node:https';
+import {inspect} from 'node:util';
 import jsonld from 'jsonld';
 import {jsonldRequest} from 'jsonld-request';
 import path from 'node:path';
 import {program} from 'commander';
+
+// all allowed modes for jsonld-request
+const ALLOW_ALL = ['stdin', 'file', 'http', 'https'];
+const ALLOW_DEFAULT = ['http', 'https'];
+const ALLOW_NONE = [];
 
 // Parse the string or value and return the boolean value encoded or raise an
 // exception.
@@ -59,7 +65,7 @@ async function _output(data, cmd) {
 function _warningHandler({event, next}) {
   if(event.level === 'warning') {
     console.log(`WARNING: ${event.message}`);
-    console.log(event);
+    console.log(inspect(event, {colors: true, depth: 10}));
   }
   next();
 }
@@ -75,7 +81,7 @@ function _error(err, msg = 'Error:') {
     if(typeof err === 'object') {
       const {cause, ...options} = err;
       if(Object.keys(options).length !== 0) {
-        console.log(msg, JSON.stringify(options, null, 2));
+        console.log(msg, inspect(options, {colors: true, depth: 10}));
       }
       if(cause) {
         _error(cause, 'Error Cause:');
@@ -83,6 +89,19 @@ function _error(err, msg = 'Error:') {
     }
     process.exit(1);
   }
+}
+
+// request wrapper to handle primary/secondary loading access
+let _primary = true;
+async function _jsonldRequest(url, reqOptions, options) {
+  const _options = {...reqOptions};
+  if(_primary) {
+    _options.allow = ALLOW_ALL;
+  } else {
+    _options.allow = options.allow;
+  }
+  _primary = false;
+  return jsonldRequest(url, _options);
 }
 
 // check for HTTP/HTTPS URL
@@ -96,19 +115,19 @@ function _jsonLdCommand(command) {
     .option('-i, --indent <spaces>', 'spaces to indent [2]', Number, 2)
     .option('-N, --no-newline', 'do not output the trailing newline [newline]')
     .option('-k, --insecure', 'allow insecure connections [false]')
+    .option('-a, --allow <list>',
+      'allowed secondary resource loaders (none,all,stdin,file,http,https) ' +
+      '[http,https]')
     .option('-t, --type <type>', 'input data type [auto]')
-    .option('-b, --base <base>', 'base IRI []')
+    .option('-B, --auto-base', 'use base IRI from source [false]')
+    .option('-b, --base <base>', 'base IRI [null]')
     .option('-l, --lint', 'show lint warnings [false]')
     .option('-s, --safe', 'enable safe mode [false]');
   return command;
 }
 
-// determine base
-function _getBase(command, input) {
-  // explicit base set
-  if(command.base) {
-    return command.base;
-  }
+// determine source base
+function _getSourceBase(command, input) {
   // stdin
   if(input === '-') {
     return 'stdin://';
@@ -119,6 +138,18 @@ function _getBase(command, input) {
   }
   // use a file URL otherwise
   return 'file://' + path.resolve(process.cwd(), input);
+}
+
+// determine base
+function _getBase(command, input) {
+  // explicit base set
+  if(command.base) {
+    return command.base;
+  }
+  if(command.sourceBase) {
+    return _getSourceBase(command, input);
+  }
+  return null;
 }
 
 // init common request options
@@ -138,6 +169,19 @@ function _requestOptions(command, input) {
 function _jsonLdOptions(command, input) {
   const options = {};
 
+  if(command.allow) {
+    // split allow modes
+    options.allow = command.allow.split(',');
+    if(options.allow.includes('all')) {
+      options.allow = ALLOW_ALL;
+    } else if(options.allow.includes('none')) {
+      options.allow = ALLOW_NONE;
+    }
+  } else {
+    // default to only load secondary HTTP/HTTPS resources
+    options.access = ALLOW_DEFAULT;
+  }
+
   if(command.lint) {
     options.eventHandler = _warningHandler;
   }
@@ -152,7 +196,7 @@ function _jsonLdOptions(command, input) {
   // FIXME: should be elsewhere
   options.documentLoader = async function documentLoader(url) {
     const reqOpts = _requestOptions(command, url);
-    const reqResult = await jsonldRequest(url, reqOpts);
+    const reqResult = await _jsonldRequest(url, reqOpts, options);
     return {
       contextUrl: null,
       documentUrl: url,
@@ -167,9 +211,11 @@ program
   .on('--help', function() {
     console.log();
     console.log(
-      '  The input parameter for all commands can be a filename, a URL\n' +
+      '  The primary input for all commands can be a filename, a URL\n' +
       '  beginning with "http://" or "https://", or "-" for stdin (the\n' +
-      '  default).');
+      '  default). Secondary loaded resources can only be HTTP or HTTPS\n' +
+      '  by default for security reasons unless the "-a/--allow" option\n' +
+      '  is used.');
     console.log();
     console.log(
       '  Input type can be specified as a standard content type or a\n' +
@@ -221,7 +267,7 @@ _jsonLdCommand(program.command('format [filename|URL|-]'))
       case 'application/ld+json':
         // just doing basic JSON formatting
         const reqOpts = _requestOptions(cmd, input);
-        const reqResult = await jsonldRequest(input, reqOpts);
+        const reqResult = await _jsonldRequest(input, reqOpts, options);
         result = reqResult.data;
         break;
       default:
