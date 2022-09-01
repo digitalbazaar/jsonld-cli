@@ -13,6 +13,7 @@
 - **BREAKING**: Primary input can be stdin, file, HTTP, or HTTPS resources.
   Secondary input can only be HTTP or HTTPS for security reasons unless the
   `-a/--allow` option is used.
+- **BREAKING**: Change `normalize` command to `canonize`.
 
 ## Added
 - Add `toRdf` command.

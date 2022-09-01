@@ -228,7 +228,7 @@ program
     console.log();
     console.log(
       '  Output type can be specified for the "format" command and a\n' +
-      '  N-Quads shortcut for the "normalize" command. For other commands\n' +
+      '  N-Quads shortcut for the "canonize" command. For other commands\n' +
       '  you can pipe JSON-LD output to the "format" command.');
     console.log();
   });
@@ -386,12 +386,12 @@ _jsonLdCommand(program.command('toRdf [filename|URL|-]'))
     await _output(result, cmd);
   });
 
-_jsonLdCommand(program.command('normalize [filename|URL|-]'))
-  .description('normalize JSON-LD')
+_jsonLdCommand(program.command('canonize [filename|URL|-]'))
+  .description('canonize JSON-LD')
   .option('-f, --format <format>',
     'format to output (\'application/n-quads\' for N-Quads')
   .option('-q, --n-quads', 'use \'application/n-quads\' format')
-  .action(async function normalize(input, cmd) {
+  .action(async function canonize(input, cmd) {
     input = input || '-';
     const options = _jsonLdOptions(cmd, input);
     if(cmd.nQuads) {
@@ -401,7 +401,7 @@ _jsonLdCommand(program.command('normalize [filename|URL|-]'))
       options.format = cmd.format;
     }
 
-    const result = await jsonld.normalize(input, options);
+    const result = await jsonld.canonize(input, options);
 
     await _output(result, cmd);
   });
