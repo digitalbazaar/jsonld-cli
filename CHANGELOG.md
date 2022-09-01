@@ -19,7 +19,8 @@
 - Add `toRdf` command.
 - Add `lint` command. Note that this uses currently private unstable
   [jsonld.js][] APIs.
-- Add `safe` mode to commands.
+- Add `-s/--safe` `safe` mode to commands.
+- Add `-l/--lint` `lint` mode to commands.
 - Add `-a/--allow` option to change allowed secondary resource loaders.
 
 ## 0.3.0 - 2018-07-06
