@@ -15,7 +15,14 @@ import {jsonldRequest} from 'jsonld-request';
 import path from 'node:path';
 import {program} from 'commander';
 
-program.version('1.0.0');
+import {fileURLToPath} from 'node:url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+import {readFileSync} from 'node:fs';
+const version =
+  JSON.parse(readFileSync(path.join(__dirname, '..', 'package.json'))).version;
+
+program.version(version);
 
 // all allowed modes for jsonld-request
 const ALLOW_ALL = ['stdin', 'file', 'http', 'https'];

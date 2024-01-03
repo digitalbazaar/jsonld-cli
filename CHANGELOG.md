@@ -3,6 +3,7 @@
 ## 2.0.0 - 2024-01-xx
 
 ## Changed
+- Set version from `package.json`.
 - **BREAKING**: Update dependencies.
   - `commander` requires Node.js >= 16.
 
