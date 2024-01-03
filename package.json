@@ -32,21 +32,21 @@
   },
   "type": "module",
   "dependencies": {
-    "commander": "^9.4.0",
-    "jsonld": "^8.1.0",
-    "jsonld-request": "^2.0.0"
+    "commander": "^11.1.0",
+    "jsonld": "^8.3.2",
+    "jsonld-request": "^2.0.1"
   },
   "devDependencies": {
-    "eslint": "^8.23.0",
-    "eslint-config-digitalbazaar": "^4.1.0",
-    "eslint-plugin-jsdoc": "^39.3.6",
-    "eslint-plugin-unicorn": "^43.0.2"
+    "eslint": "^8.56.0",
+    "eslint-config-digitalbazaar": "^5.0.1",
+    "eslint-plugin-jsdoc": "^48.0.1",
+    "eslint-plugin-unicorn": "^50.0.1"
   },
   "files": [
     "bin/**/*.js"
   ],
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "keywords": [
     "JSON",

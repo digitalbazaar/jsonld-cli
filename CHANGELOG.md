@@ -1,5 +1,11 @@
 # jsonld-cli ChangeLog
 
+## 2.0.0 - 2024-01-xx
+
+## Changed
+- **BREAKING**: Update dependencies.
+  - `commander` requires Node.js >= 16.
+
 ## 1.0.0 - 2022-09-01
 
 ## Changed
