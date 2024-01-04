@@ -1,6 +1,6 @@
 {
   "name": "jsonld-cli",
-  "version": "1.0.1-0",
+  "version": "2.0.0",
   "description": "A JSON-LD command line interface tool.",
   "homepage": "https://github.com/digitalbazaar/jsonld-cli",
   "author": {
