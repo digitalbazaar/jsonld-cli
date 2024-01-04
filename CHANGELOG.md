@@ -1,6 +1,6 @@
 # jsonld-cli ChangeLog
 
-## 2.0.0 - 2024-01-xx
+## 2.0.0 - 2024-01-04
 
 ## Changed
 - Set version from `package.json`.
