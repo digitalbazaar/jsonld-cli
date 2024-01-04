@@ -8,19 +8,28 @@
  * Copyright (c) 2013-2022 Digital Bazaar, Inc.
  * All rights reserved.
  */
+import {fileURLToPath} from 'node:url';
 import https from 'node:https';
 import {inspect} from 'node:util';
 import jsonld from 'jsonld';
 import {jsonldRequest} from 'jsonld-request';
 import path from 'node:path';
 import {program} from 'commander';
-
-import {fileURLToPath} from 'node:url';
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 import {readFileSync} from 'node:fs';
-const version =
-  JSON.parse(readFileSync(path.join(__dirname, '..', 'package.json'))).version;
+
+const version = {
+  value: undefined,
+  toString() {
+    // load version when used
+    if(this.value === undefined) {
+      const __dirname = path.dirname(fileURLToPath(import.meta.url));
+      const pkg =
+        JSON.parse(readFileSync(path.join(__dirname, '..', 'package.json')));
+      this.value = pkg.version;
+    }
+    return this.value;
+  }
+};
 
 program.version(version);
 
