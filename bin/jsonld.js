@@ -8,6 +8,7 @@
  * Copyright (c) 2013-2022 Digital Bazaar, Inc.
  * All rights reserved.
  */
+import {createDeepComparer} from 'deep-comparer';
 import {fileURLToPath} from 'node:url';
 import https from 'node:https';
 import {inspect} from 'node:util';
@@ -422,6 +423,26 @@ _jsonLdCommand(program.command('canonize [filename|URL|-]'))
     const result = await jsonld.canonize(input, options);
 
     await _output(result, cmd);
+  });
+
+program.command('diff <filenameA> <filenameB>')
+  .description('compare two JSON-LD documents in expanded form')
+  .action(async function diff(filenameA, filenameB, cmd) {
+    const options = _jsonLdOptions(cmd, filenameA);
+    options.keepFreeFloatingNodes = cmd.keepFreeFloatingNodes;
+
+    const resultA = await jsonld.expand(filenameA, options);
+    const resultB = await jsonld.expand(filenameB, options);
+
+    const deepCompare = createDeepComparer();
+    const differences = await deepCompare(resultA, resultB);
+
+    if(differences.length > 0) {
+      console.log('Differences found:');
+      console.dir(differences, {depth: 5});
+    } else {
+      console.log('No differences found.');
+    }
   });
 
 program
