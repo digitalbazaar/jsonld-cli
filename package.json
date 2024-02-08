@@ -33,6 +33,7 @@
   "type": "module",
   "dependencies": {
     "commander": "^11.1.0",
+    "deep-comparer": "^2.0.3",
     "jsonld": "^8.3.2",
     "jsonld-request": "^2.0.1"
   },
