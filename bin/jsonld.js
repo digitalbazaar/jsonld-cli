@@ -253,6 +253,7 @@ program
 
 _jsonLdCommand(program.command('format [filename|URL|-]'))
   .description('format and convert JSON-LD')
+  .option('-c, --context <filename|URL>', 'context filename or URL')
   .option('-f, --format <format>', 'output format [json]', String)
   .option('-q, --n-quads', 'output application/n-quads [false]')
   .option('-j, --json', 'output application/json [true]')
@@ -265,6 +266,9 @@ _jsonLdCommand(program.command('format [filename|URL|-]'))
     }
     if(cmd.json) {
       options.format = 'application/json';
+    }
+    if(cmd.context) {
+      options.expandContext = cmd.context;
     }
 
     let result;
