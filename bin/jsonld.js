@@ -208,6 +208,10 @@ function _jsonLdOptions(command, input) {
     options.safe = true;
   }
 
+  if(command.context) {
+    options.expandContext = command.context;
+  }
+
   options.base = _getBase(command, input);
 
   // setup documentLoader
@@ -253,6 +257,7 @@ program
 
 _jsonLdCommand(program.command('format [filename|URL|-]'))
   .description('format and convert JSON-LD')
+  .option('-c, --context <filename|URL>', 'context filename or URL')
   .option('-f, --format <format>', 'output format [json]', String)
   .option('-q, --n-quads', 'output application/n-quads [false]')
   .option('-j, --json', 'output application/json [true]')
@@ -297,6 +302,7 @@ _jsonLdCommand(program.command('format [filename|URL|-]'))
 
 _jsonLdCommand(program.command('lint [filename|URL|-]'))
   .description('lint JSON-LD')
+  .option('-c, --context <filename|URL>', 'context filename or URL')
   .action(async function lint(input, cmd) {
     input = input || '-';
     const options = _jsonLdOptions(cmd, input);
@@ -329,6 +335,7 @@ _jsonLdCommand(program.command('compact [filename|URL]'))
 
 _jsonLdCommand(program.command('expand [filename|URL|-]'))
   .description('expand JSON-LD')
+  .option('-c, --context <filename|URL>', 'context filename or URL')
   .option('    --keep-free-floating-nodes', 'keep free-floating nodes')
   .action(async function expand(input, cmd) {
     input = input || '-';
