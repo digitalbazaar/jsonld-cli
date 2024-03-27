@@ -333,10 +333,14 @@ _jsonLdCommand(program.command('compact [filename|URL]'))
 
 _jsonLdCommand(program.command('expand [filename|URL|-]'))
   .description('expand JSON-LD')
+  .option('-c, --context <filename|URL>', 'context filename or URL')
   .option('    --keep-free-floating-nodes', 'keep free-floating nodes')
   .action(async function expand(input, cmd) {
     input = input || '-';
     const options = _jsonLdOptions(cmd, input);
+    if(cmd.context) {
+      options.expandContext = cmd.context;
+    }
     options.keepFreeFloatingNodes = cmd.keepFreeFloatingNodes;
 
     const result = await jsonld.expand(input, options);
