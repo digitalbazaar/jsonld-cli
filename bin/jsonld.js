@@ -301,9 +301,13 @@ _jsonLdCommand(program.command('format [filename|URL|-]'))
 
 _jsonLdCommand(program.command('lint [filename|URL|-]'))
   .description('lint JSON-LD')
+  .option('-c, --context <filename|URL>', 'context filename or URL')
   .action(async function lint(input, cmd) {
     input = input || '-';
     const options = _jsonLdOptions(cmd, input);
+    if(cmd.context) {
+      options.expandContext = cmd.context;
+    }
 
     await jsonld.expand(input, {
       ...options,
