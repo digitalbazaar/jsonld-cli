@@ -208,6 +208,10 @@ function _jsonLdOptions(command, input) {
     options.safe = true;
   }
 
+  if(command.context) {
+    options.expandContext = command.context;
+  }
+
   options.base = _getBase(command, input);
 
   // setup documentLoader
@@ -267,9 +271,6 @@ _jsonLdCommand(program.command('format [filename|URL|-]'))
     if(cmd.json) {
       options.format = 'application/json';
     }
-    if(cmd.context) {
-      options.expandContext = cmd.context;
-    }
 
     let result;
     switch(options.format.toLowerCase()) {
@@ -305,9 +306,6 @@ _jsonLdCommand(program.command('lint [filename|URL|-]'))
   .action(async function lint(input, cmd) {
     input = input || '-';
     const options = _jsonLdOptions(cmd, input);
-    if(cmd.context) {
-      options.expandContext = cmd.context;
-    }
 
     await jsonld.expand(input, {
       ...options,
@@ -342,9 +340,6 @@ _jsonLdCommand(program.command('expand [filename|URL|-]'))
   .action(async function expand(input, cmd) {
     input = input || '-';
     const options = _jsonLdOptions(cmd, input);
-    if(cmd.context) {
-      options.expandContext = cmd.context;
-    }
     options.keepFreeFloatingNodes = cmd.keepFreeFloatingNodes;
 
     const result = await jsonld.expand(input, options);
