@@ -208,10 +208,6 @@ function _jsonLdOptions(command, input) {
     options.safe = true;
   }
 
-  if(command.context) {
-    options.expandContext = command.context;
-  }
-
   options.base = _getBase(command, input);
 
   // setup documentLoader
@@ -339,6 +335,10 @@ _jsonLdCommand(program.command('expand [filename|URL|-]'))
   .option('    --keep-free-floating-nodes', 'keep free-floating nodes')
   .action(async function expand(input, cmd) {
     input = input || '-';
+    if(cmd.context) {
+      cmd.expandContext = cmd.context;
+      delete cmd.context;
+    }
     const options = _jsonLdOptions(cmd, input);
     options.keepFreeFloatingNodes = cmd.keepFreeFloatingNodes;
 
