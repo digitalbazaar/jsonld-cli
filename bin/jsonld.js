@@ -283,12 +283,13 @@ _jsonLdCommand(program.command('format [filename|URL|-]'))
       case 'json-ld':
       case 'ld+json':
       case 'application/json':
-      case 'application/ld+json':
+      case 'application/ld+json': {
         // just doing basic JSON formatting
         const reqOpts = _requestOptions(cmd, input);
         const reqResult = await _jsonldRequest(input, reqOpts, options);
         result = reqResult.data;
         break;
+      }
       default:
         throw new Error('ERROR: Unknown format: ' + options.format);
     }

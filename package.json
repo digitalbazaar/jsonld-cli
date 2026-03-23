@@ -37,9 +37,8 @@
     "jsonld-request": "^2.0.1"
   },
   "devDependencies": {
-    "eslint": "^8.56.0",
-    "eslint-config-digitalbazaar": "^5.0.1",
-    "eslint-plugin-unicorn": "^50.0.1"
+    "@digitalbazaar/eslint-config": "^8.0.1",
+    "eslint": "^9.39.4"
   },
   "files": [
     "bin/**/*.js"
